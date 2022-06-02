@@ -11,14 +11,13 @@ const setTableProducts = (data) => {
   document.getElementById("table").innerHTML = html;
 };
 
-socket.on("launchApp", (productos) => {
-  alert("Nueva conexion");
-  fetch("http://localhost:8080/public/views/form.hbs").then((res) => {
-    console.log(res);
-    template = Handlebars.compile(res);
-  });
-  console.log(productos);
-  setTableProducts(productos);
+socket.on("launchApp", async (productos) => {
+   const resp = await fetch("http://localhost:8080/table.hbs")
+   const answ = await resp.json().then(data => {console.log(data)})
+   console.log(resp)
+   console.log(answ)
+/*   template = Handlebars.compile(res);
+  setTableProducts(productos); */
 });
 
 socket.on("updateTable", (productos) => {
