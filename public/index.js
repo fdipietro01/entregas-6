@@ -1,18 +1,9 @@
 const socket = io();
-let template;
 
-const setTableProducts = (data) => {
-  let html;
-  if (data.length === 0) {
-    html = template({ productos: data, sinProductos: true });
-  } else {
-    html = template({ productos: data, sinProductos: false });
-  }
-  document.getElementById("table").innerHTML = html;
-};
+const setTableProducts = (productos, template) => {};
 
 socket.on("launchApp", ({ products, chatHistory }) => {
-  /*   initializingTable(productos) */
+  initializingTable(products);
   initializingChat(chatHistory);
 });
 
@@ -28,45 +19,59 @@ socket.on("RegisterOk", (confirmation) => {
   }
 });
 
-const initializingTable = async (productos) => {
-  const resp = await fetch("http://localhost:8080/table.hbs");
-  const answ = await resp.json().then((data) => {
-    console.log(data);
-  });
-  console.log(resp);
-  console.log(answ);
-  template = Handlebars.compile(answ);
-  setTableProducts(productos);
+const initializingTable = (productos) => {
+  fetch("/table.hbs")
+    .then((response) => response.text())
+    .then((template) => {
+      const templateFunction = Handlebars.compile(template);
+      let html;
+      if (productos.length === 0) {
+        html = templateFunction({ productos: productos, sinProductos: true });
+      } else {
+        html = templateFunction({ productos: productos, sinProductos: false });
+      }
+      document.getElementById("table").innerHTML = html;
+    });
 };
 
 const initializingChat = (chatHistory) => {
+  console.log(chatHistory)
   if (chatHistory.length === 0) {
-    const doc = document.createElement("p")
-    doc.innerHTML = "No messages yet";
-    doc.classList.add("input-group-text", "text-danger")
-    document.getElementById("chat").appendChild(doc);
+    const chat = document.getElementById("chat");
+    chat.innerHTML = "No messages yet";
+    chat.classList.add("input-group-text", "text-danger");
   } else {
+    const chat = document.getElementById("chat");
+    chat.innerHTML = "";
+    chat.removeAttribute("class");
     chatHistory.forEach((element) => {
-      const doc = (document.createElement("p").innerHTML = element);
-      document.getElementById("chat").appendChild(doc);
+      console.log(element);
+      const doc = document.createElement("p");
+      doc.innerHTML = element;
+      chat.appendChild(doc);
     });
   }
 };
 
-const sendMessage = () => {};
-
-const newProduct = () => {
-  const name = document.getElementById("name").value;
-  const price = document.getElementById("price").value;
-  const img = document.getElementById("img").value;
-  socket.emit("newProduct", { name, price, img });
-  return false;
+const newProd = () => {
+  console.log("paso x nuevo prod");
+  const producto = {
+    name: document.getElementById("name").value,
+    price: document.getElementById("price").value,
+    img: document.getElementById("img").value,
+  };
+  return false
 };
 
 const newMail = () => {
   console.log("entro por acá");
   const mail = document.getElementById("mail").value;
   socket.emit("newMail", mail);
+  document.getElementById("mailId").innerHTML = `Logged as ${mail}`;
+  document
+    .getElementById("mailId")
+    .classList.add("bg-info", "text-white", "p-1", "rounded");
+  document.getElementById("mail").value = "";
   return false;
 };
 
@@ -74,5 +79,6 @@ const setNewMessage = () => {
   const text = document.getElementById("message").value;
   const date = new Date().toLocaleString();
   socket.emit("newMessage", { text, date });
+  document.getElementById("message").value = "";
   return false;
 };

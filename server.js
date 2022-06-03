@@ -1,11 +1,10 @@
 const express = require("express");
-const { engine } = require("express-handlebars");
 const app = express();
 const Contenedor = require("./contenedor/contenedor");
 const { Server: HttpServer } = require("http");
 const { Server: SocketServer } = require("socket.io");
+const fs = require("fs");
 
-const chatHistory = []
 const contenedor = new Contenedor("Mi Contenedor");
 
 app.use(express.static("public"));
@@ -15,27 +14,40 @@ app.get("/", (req, res) => {
 
 const httpServer = new HttpServer(app);
 const socketServer = new SocketServer(httpServer);
+fs.writeFileSync("./chat.txt", "[]", (err) => {});
 
 socketServer.on("connection", (socket) => {
-  socket.emit("launchApp", {products: contenedor.getProducts(), chatHistory});
+  const chat = JSON.parse(
+    fs.readFileSync("./chat.txt", (err, data) => {
+      if (err) console.error("Error al leer el archivo");
+    })
+  );
+
+  socket.emit("launchApp", {
+    products: contenedor.getProducts(),
+    chatHistory: chat,
+  });
 
   // listener para registrar nuevo correo y confirmarlo
-  socket.on("newMail", (mail)=>{
-    console.log("nuevo correo", mail)
+  socket.on("newMail", (mail) => {
+    console.log("nuevo correo", mail);
     socket.email = mail;
-    socket.emit("RegisterOk", true)
-  })
+    socket.emit("RegisterOk", true);
+  });
 
   // listener para añadir mensaje a la colección y actualizar el histial
-  socket.on("newMessage", ({text, date}) => {
+  socket.on("newMessage", ({ text, date }) => {
+    console.log(text, date);
+    console.log(socket.email);
     const message = `<p class="input-group-text">
-    <span class="text-primary font-weight-bold">${socket.mail}</span>
-    <span class="text-danger>${date}</span>:
-    <span class="text-success font-italic>${text}</span>
+    <span class="text-primary font-weight-bold"> ${socket.email} </span> &nbsp
+    <span class="text-danger"> [${date}]: </span> &nbsp
+    <span class="text-success font-italic"> ${text} </span>
  </p>`;
-    chatHistory.push(message);
-    socketServer.sockets.emit("updateChat", chatHistory);
-  })
+    chat.push(message);
+    socketServer.sockets.emit("updateChat", chat);
+    fs.writeFileSync("./chat.txt", JSON.stringify(chat));
+  });
 
   // listener para añadir producto a la colección y actualizar la tabla
   socket.on("newProduct", (producto) => {
