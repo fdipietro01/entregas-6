@@ -36,14 +36,15 @@ socketServer.on("connection", (socket) => {
 
   // listener para añadir mensaje a la colección y actualizar el histial
   socket.on("newMessage", ({ text, date }) => {
+    const chat1 = JSON.parse(fs.readFileSync("./chat.txt", (err) => {}))
     const message = `<p class="input-group-text">
     <span class="text-primary font-weight-bold"> ${socket.email} </span> &nbsp
     <span class="text-danger"> [${date}]: </span> &nbsp
     <span class="text-success font-italic"> ${text} </span>
  </p>`;
-    chat.push(message);
-    socketServer.sockets.emit("updateChat", chat);
-    fs.writeFileSync("./chat.txt", JSON.stringify(chat));
+    chat1.push(message);
+    socketServer.sockets.emit("updateChat", chat1);
+    fs.writeFileSync("./chat.txt", JSON.stringify(chat1));
   });
 
   // listener para añadir producto a la colección y actualizar la tabla
