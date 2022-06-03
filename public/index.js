@@ -29,7 +29,6 @@ socket.on("RegisterOk", (confirmation) => {
 });
 
 const initializingTable = (productos) => {
-  console.log("contando...")
   fetch("/table.hbs")
     .then((response) => response.text())
     .then((template) => {
@@ -65,7 +64,6 @@ const addProd = () => {
   const title = document.getElementById("title").value;
   const price = document.getElementById("price").value;
   const img = document.getElementById("img").value;
-  console.log({title, price, img});
   socket.emit("newProduct", {title, price, img});
   document.getElementById("title").value = "";
   document.getElementById("price").value = "";

@@ -30,15 +30,12 @@ socketServer.on("connection", (socket) => {
 
   // listener para registrar nuevo correo y confirmarlo
   socket.on("newMail", (mail) => {
-    console.log("nuevo correo", mail);
     socket.email = mail;
     socket.emit("RegisterOk", true);
   });
 
   // listener para añadir mensaje a la colección y actualizar el histial
   socket.on("newMessage", ({ text, date }) => {
-    console.log(text, date);
-    console.log(socket.email);
     const message = `<p class="input-group-text">
     <span class="text-primary font-weight-bold"> ${socket.email} </span> &nbsp
     <span class="text-danger"> [${date}]: </span> &nbsp
