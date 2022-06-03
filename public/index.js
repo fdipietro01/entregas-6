@@ -1,6 +1,15 @@
 const socket = io();
-
-const setTableProducts = (productos, template) => {};
+let templateCompiler;
+const setTableProducts = (productos) => {
+  console.log("llego aca");
+      let html;
+      if (productos.length === 0) {
+        html = templateCompiler({ productos: productos, sinProductos: true });
+      } else {
+        html = templateCompiler({ productos: productos, sinProductos: false });
+      }
+      document.getElementById("table").innerHTML = html;
+};
 
 socket.on("launchApp", ({ products, chatHistory }) => {
   initializingTable(products);
@@ -20,22 +29,22 @@ socket.on("RegisterOk", (confirmation) => {
 });
 
 const initializingTable = (productos) => {
+  console.log("contando...")
   fetch("/table.hbs")
     .then((response) => response.text())
     .then((template) => {
-      const templateFunction = Handlebars.compile(template);
+      templateCompiler = Handlebars.compile(template);
       let html;
       if (productos.length === 0) {
-        html = templateFunction({ productos: productos, sinProductos: true });
+        html = templateCompiler({ productos: productos, sinProductos: true });
       } else {
-        html = templateFunction({ productos: productos, sinProductos: false });
+        html = templateCompiler({ productos: productos, sinProductos: false });
       }
       document.getElementById("table").innerHTML = html;
     });
 };
 
 const initializingChat = (chatHistory) => {
-  console.log(chatHistory)
   if (chatHistory.length === 0) {
     const chat = document.getElementById("chat");
     chat.innerHTML = "No messages yet";
@@ -45,7 +54,6 @@ const initializingChat = (chatHistory) => {
     chat.innerHTML = "";
     chat.removeAttribute("class");
     chatHistory.forEach((element) => {
-      console.log(element);
       const doc = document.createElement("p");
       doc.innerHTML = element;
       chat.appendChild(doc);
@@ -53,25 +61,24 @@ const initializingChat = (chatHistory) => {
   }
 };
 
-const newProd = () => {
-  console.log("paso x nuevo prod");
-  const producto = {
-    name: document.getElementById("name").value,
-    price: document.getElementById("price").value,
-    img: document.getElementById("img").value,
-  };
+const addProd = () => {
+  const title = document.getElementById("title").value;
+  const price = document.getElementById("price").value;
+  const img = document.getElementById("img").value;
+  console.log({title, price, img});
+  socket.emit("newProduct", {title, price, img});
+  document.getElementById("title").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("img").value = "";
   return false
 };
 
 const newMail = () => {
-  console.log("entro por acá");
   const mail = document.getElementById("mail").value;
   socket.emit("newMail", mail);
   document.getElementById("mailId").innerHTML = `Logged as ${mail}`;
-  document
-    .getElementById("mailId")
-    .classList.add("bg-info", "text-white", "p-1", "rounded");
-  document.getElementById("mail").value = "";
+  document.getElementById("mailId").classList.add("bg-info", "text-white", "p-1", "rounded");
+  document.getElementById("mail").value= "";
   return false;
 };
 
